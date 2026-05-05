@@ -2,48 +2,59 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>WR PRO</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WR ENVELOPAMENTOS</title>
 
 <style>
 body {
     font-family: Arial;
-    background: #0b0b0b;
-    color: white;
-    text-align: center;
+    background:#0b0b0b;
+    color:white;
+    text-align:center;
 }
 
 .container {
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 20px;
-    width: 340px;
-    margin: auto;
-    margin-top: 20px;
+    background:#1a1a1a;
+    padding:20px;
+    border-radius:20px;
+    width:90%;
+    max-width:380px;
+    margin:auto;
+    margin-top:20px;
 }
 
-h2 { color: red; }
+h2 {color:red;}
 
 input {
-    width: 90%;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 10px;
-    border: none;
-    background: #2a2a2a;
-    color: white;
+    width:95%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:10px;
+    border:none;
+    background:#2a2a2a;
+    color:white;
 }
 
 button {
-    margin-top: 8px;
-    padding: 12px;
-    width: 100%;
-    background: red;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: bold;
+    margin-top:10px;
+    padding:12px;
+    width:100%;
+    background:red;
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+}
+
+.result {
+    margin-top:15px;
+    font-size:16px;
+}
+
+.alerta {
+    margin-top:10px;
+    font-weight:bold;
+    font-size:18px;
 }
 </style>
 </head>
@@ -51,86 +62,74 @@ button {
 <body>
 
 <div class="container">
-<h2>WR PRO</h2>
+<h2>WR ENVELOPAMENTOS</h2>
 
-<input id="cliente" placeholder="Cliente">
-<input id="servico" placeholder="Serviço">
+<input id="custoMetro" placeholder="Custo por metro (R$)">
+<input id="metros" placeholder="Metros usados">
+<input id="perda" placeholder="Perda (%)">
 
-<input id="pm" placeholder="Preço por metro">
-<input id="m" placeholder="Metros usados">
-<input id="perda" placeholder="Perda %">
-<input id="mao" placeholder="Mão de obra">
+<input id="fixo" placeholder="Custo fixo por serviço (R$)">
+<input id="imposto" placeholder="Impostos (%)">
 
-<input id="fixo" placeholder="Custo fixo mensal">
-<input id="qtd" placeholder="Qtd serviços mês">
+<input id="lucro" placeholder="Lucro desejado (%)">
 
-<input id="imp" placeholder="Impostos %">
-<input id="lucro" placeholder="Lucro %">
+<input id="precoCliente" placeholder="Preço que o cliente quer pagar (R$)">
 
-<input id="venda" placeholder="Preço final">
+<button onclick="calcular()">Calcular</button>
 
-<button onclick="calc()">Calcular</button>
-<button onclick="pdf()">Gerar PDF</button>
-<button onclick="zap()">Enviar WhatsApp</button>
-
-<div id="res"></div>
+<div class="result" id="resultado"></div>
+<div class="alerta" id="alerta"></div>
 
 </div>
 
 <script>
 
-let dados = {};
+function calcular(){
 
-function calc(){
+let custoMetro = parseFloat(custoMetro.value) || 0;
+let metrosUsados = parseFloat(metros.value) || 0;
+let perdaPct = parseFloat(perda.value) || 0;
+let custoFixo = parseFloat(fixo.value) || 0;
+let impostoPct = parseFloat(imposto.value) || 0;
+let lucroPct = parseFloat(lucro.value) || 0;
+let precoCliente = parseFloat(precoCliente.value) || 0;
 
-let material = m.value * pm.value;
-let real = material * (1 + perda.value/100);
-let fixoUnit = fixo.value / (qtd.value || 1);
+// cálculo
+let material = custoMetro * metrosUsados;
+let materialReal = material * (1 + perdaPct / 100);
+let custoTotal = materialReal + custoFixo;
 
-let custo = real + Number(mao.value) + fixoUnit;
-let ideal = custo * (1 + imp.value/100) * (1 + lucro.value/100);
+let precoMinimo = custoTotal * (1 + impostoPct / 100);
+let precoIdeal = precoMinimo * (1 + lucroPct / 100);
 
-dados = {
-cliente: cliente.value,
-servico: servico.value,
-ideal: ideal.toFixed(2),
-venda: venda.value
-};
+let lucroReal = precoCliente - custoTotal;
 
-res.innerHTML = "Preço ideal: R$ " + ideal.toFixed(2);
+// resultado
+resultado.innerHTML = `
+Custo total: R$ ${custoTotal.toFixed(2)} <br><br>
+Preço mínimo: R$ ${precoMinimo.toFixed(2)} <br>
+Preço ideal: R$ ${precoIdeal.toFixed(2)} <br><br>
+Lucro nesse valor: R$ ${lucroReal.toFixed(2)}
+`;
+
+// alerta inteligente
+if(precoCliente > 0){
+
+    if(precoCliente < precoMinimo){
+        alerta.innerHTML = "⚠️ Você está pagando pra trabalhar";
+        alerta.style.color = "orange";
+    }
+    else if(precoCliente < precoIdeal){
+        alerta.innerHTML = "⚠️ Lucro baixo";
+        alerta.style.color = "yellow";
+    }
+    else{
+        alerta.innerHTML = "🔥 Preço saudável";
+        alerta.style.color = "lightgreen";
+    }
+
 }
 
-function pdf(){
-const { jsPDF } = window.jspdf;
-const doc = new jsPDF();
-
-doc.setFontSize(18);
-doc.text("WR ENVELOPAMENTOS", 20, 20);
-
-doc.setFontSize(12);
-doc.text("Cliente: " + dados.cliente, 20, 40);
-doc.text("Serviço: " + dados.servico, 20, 50);
-
-doc.text("Preço sugerido: R$ " + dados.ideal, 20, 70);
-doc.text("Preço final: R$ " + dados.venda, 20, 80);
-
-doc.text("Garantia e qualidade profissional.", 20, 110);
-
-doc.save("orcamento.pdf");
-}
-
-function zap(){
-
-let msg = `Olá ${dados.cliente}, segue seu orçamento:
-
-Serviço: ${dados.servico}
-Valor: R$ ${dados.venda}
-
-Qualquer dúvida estou à disposição.`;
-
-let url = "https://wa.me/?text=" + encodeURIComponent(msg);
-
-window.open(url, "_blank");
 }
 
 </script>
