@@ -8,52 +8,74 @@
 <style>
 
 body {
-    font-family: 'Segoe UI', Arial;
-    background: linear-gradient(180deg, #050505, #0f0f0f);
-    color: white;
-    text-align: center;
-}
-
-.container {
-    background: #121212;
-    padding: 25px;
-    border-radius: 25px;
-    width: 90%;
-    max-width: 380px;
-    margin: auto;
-    margin-top: 30px;
-    box-shadow: 0 0 25px rgba(0,255,150,0.1);
-}
-
-h2 { color:#00ff88; }
-
-input {
-    width:95%;
-    padding:12px;
-    margin:6px 0;
-    border-radius:12px;
-    border:1px solid #2a2a2a;
-    background:#1b1b1b;
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI';
+    background:#0a0a0a;
     color:white;
 }
 
-button {
-    margin-top:10px;
-    padding:14px;
-    width:100%;
-    background:linear-gradient(90deg,#00ff88,#00cc66);
-    color:black;
-    border:none;
-    border-radius:14px;
+/* topo estilo app */
+.header {
+    background:#121212;
+    padding:18px;
+    font-size:18px;
     font-weight:bold;
+    text-align:center;
+    color:#00ff88;
+    box-shadow:0 2px 10px rgba(0,0,0,0.6);
 }
 
-.result {
-    margin-top:20px;
-    font-size:16px;
-    background:#0f0f0f;
+/* container */
+.container {
     padding:15px;
-    border-radius:15px;
+}
+
+/* cards */
+.card {
+    background:#141414;
+    padding:15px;
+    border-radius:16px;
+    margin-bottom:12px;
+    box-shadow:0 0 10px rgba(0,255,136,0.05);
+}
+
+/* grid */
+.grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+input {
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:none;
+    background:#1f1f1f;
+    color:white;
+    font-size:14px;
+}
+
+/* botão */
+button {
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#00ff88;
+    color:black;
+    font-weight:bold;
+    font-size:16px;
+    margin-top:10px;
+}
+
+/* resultado */
+.result {
+    background:#101010;
+    padding:15px;
+    border-radius:14px;
+    margin-top:12px;
+    font-size:15px;
 }
 
 </style>
@@ -61,84 +83,68 @@ button {
 
 <body>
 
-<div class="container">
-<h2>WR ENVELOPAMENTOS</h2>
+<div class="header">WR ENVELOPAMENTOS</div>
 
+<div class="container">
+
+<div class="card">
+<div class="grid">
 <input id="comprimento" placeholder="Comprimento (m)">
 <input id="largura" placeholder="Largura (m)">
 
-<input id="precoM2" placeholder="Preço do m² (R$)">
-<input id="perda" placeholder="Perdas (%)">
+<input id="precoM2" placeholder="Preço m²">
+<input id="perda" placeholder="Perdas %">
 
-<input id="horas" placeholder="Horas do serviço">
-<input id="lucro" placeholder="Margem de lucro (%)">
+<input id="horas" placeholder="Horas">
+<input id="lucro" placeholder="Lucro %">
 
-<input id="fixoMensal" placeholder="Custo fixo mensal (R$)">
+<input id="fixo" placeholder="Custo fixo">
+<input id="depreciacao" value="7">
+</div>
+</div>
 
-<input id="depreciacao" placeholder="Depreciação (%)">
+<div class="card">
+<button onclick="calcular()">Calcular</button>
+</div>
 
-<button onclick="setDepreciacao()">Aplicar depreciação automática (7%)</button>
-<button onclick="calcular()">Calcular orçamento</button>
-
-<div class="result" id="resultado"></div>
+<div class="card result" id="resultado"></div>
 
 </div>
 
 <script>
 
-function setDepreciacao(){
-    depreciacao.value = 7;
-}
-
 function calcular(){
 
-let comp = parseFloat(comprimento.value) || 0;
-let larg = parseFloat(largura.value) || 0;
-let precoM2 = parseFloat(precoM2.value) || 0;
-let perda = parseFloat(perda.value) || 0;
-let horas = parseFloat(horas.value) || 0;
-let lucro = parseFloat(lucro.value) || 0;
-let fixoMensal = parseFloat(fixoMensal.value) || 0;
-let dep = parseFloat(depreciacao.value) || 0;
+let comp = parseFloat(comprimento.value)||0;
+let larg = parseFloat(largura.value)||0;
+let precoM2 = parseFloat(precoM2.value)||0;
+let perda = parseFloat(perda.value)||0;
+let horas = parseFloat(horas.value)||0;
+let lucro = parseFloat(lucro.value)||0;
+let fixo = parseFloat(fixo.value)||0;
+let dep = parseFloat(depreciacao.value)||7;
 
 let valorHora = 50;
 
-// área
 let area = comp * larg;
-
-// material
 let material = area * precoM2;
+let materialReal = material * (1 + perda/100);
+let mao = horas * valorHora;
 
-// perdas
-let materialReal = material * (1 + perda / 100);
+let base = materialReal + mao + fixo;
+let depValor = base * (dep/100);
 
-// mão de obra
-let maoDeObra = horas * valorHora;
-
-// custo fixo diluído
-let fixoServico = fixoMensal / 15;
-
-// custo base
-let custoBase = materialReal + maoDeObra + fixoServico;
-
-// depreciação
-let valorDep = custoBase * (dep / 100);
-
-// custo total
-let custoTotal = custoBase + valorDep;
-
-// preço final
-let precoFinal = custoTotal * (1 + lucro / 100);
+let total = base + depValor;
+let final = total * (1 + lucro/100);
 
 resultado.innerHTML = `
-Área: ${area.toFixed(2)} m² <br><br>
-Material: R$ ${materialReal.toFixed(2)} <br>
-Mão de obra: R$ ${maoDeObra.toFixed(2)} <br>
-Custo fixo: R$ ${fixoServico.toFixed(2)} <br>
-Depreciação: R$ ${valorDep.toFixed(2)} <br><br>
+Área: ${area.toFixed(2)} m²<br><br>
+Material: R$ ${materialReal.toFixed(2)}<br>
+Mão de obra: R$ ${mao.toFixed(2)}<br>
+Depreciação: R$ ${depValor.toFixed(2)}<br><br>
 
-<b>Custo total:</b> R$ ${custoTotal.toFixed(2)} <br>
-<b>Preço final:</b> R$ ${precoFinal.toFixed(2)}
+<b>Custo:</b> R$ ${total.toFixed(2)}<br>
+<b>Preço final:</b> R$ ${final.toFixed(2)}
 `;
 
 }
