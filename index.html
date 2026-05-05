@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>WR PRO</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0b0b0b;
+    color: white;
+    text-align: center;
+}
+
+.container {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 20px;
+    width: 340px;
+    margin: auto;
+    margin-top: 20px;
+}
+
+h2 { color: red; }
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 10px;
+    border: none;
+    background: #2a2a2a;
+    color: white;
+}
+
+button {
+    margin-top: 8px;
+    padding: 12px;
+    width: 100%;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>WR PRO</h2>
+
+<input id="cliente" placeholder="Cliente">
+<input id="servico" placeholder="Serviço">
+
+<input id="pm" placeholder="Preço por metro">
+<input id="m" placeholder="Metros usados">
+<input id="perda" placeholder="Perda %">
+<input id="mao" placeholder="Mão de obra">
+
+<input id="fixo" placeholder="Custo fixo mensal">
+<input id="qtd" placeholder="Qtd serviços mês">
+
+<input id="imp" placeholder="Impostos %">
+<input id="lucro" placeholder="Lucro %">
+
+<input id="venda" placeholder="Preço final">
+
+<button onclick="calc()">Calcular</button>
+<button onclick="pdf()">Gerar PDF</button>
+<button onclick="zap()">Enviar WhatsApp</button>
+
+<div id="res"></div>
+
+</div>
+
+<script>
+
+let dados = {};
+
+function calc(){
+
+let material = m.value * pm.value;
+let real = material * (1 + perda.value/100);
+let fixoUnit = fixo.value / (qtd.value || 1);
+
+let custo = real + Number(mao.value) + fixoUnit;
+let ideal = custo * (1 + imp.value/100) * (1 + lucro.value/100);
+
+dados = {
+cliente: cliente.value,
+servico: servico.value,
+ideal: ideal.toFixed(2),
+venda: venda.value
+};
+
+res.innerHTML = "Preço ideal: R$ " + ideal.toFixed(2);
+}
+
+function pdf(){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+
+doc.setFontSize(18);
+doc.text("WR ENVELOPAMENTOS", 20, 20);
+
+doc.setFontSize(12);
+doc.text("Cliente: " + dados.cliente, 20, 40);
+doc.text("Serviço: " + dados.servico, 20, 50);
+
+doc.text("Preço sugerido: R$ " + dados.ideal, 20, 70);
+doc.text("Preço final: R$ " + dados.venda, 20, 80);
+
+doc.text("Garantia e qualidade profissional.", 20, 110);
+
+doc.save("orcamento.pdf");
+}
+
+function zap(){
+
+let msg = `Olá ${dados.cliente}, segue seu orçamento:
+
+Serviço: ${dados.servico}
+Valor: R$ ${dados.venda}
+
+Qualquer dúvida estou à disposição.`;
+
+let url = "https://wa.me/?text=" + encodeURIComponent(msg);
+
+window.open(url, "_blank");
+}
+
+</script>
+
+</body>
+</html>
