@@ -6,50 +6,56 @@
 <title>WR ENVELOPAMENTOS</title>
 
 <style>
+
 body {
-    font-family: Arial;
-    background:#0b0b0b;
-    color:white;
-    text-align:center;
+    font-family: 'Segoe UI', Arial;
+    background: linear-gradient(180deg, #050505, #0f0f0f);
+    color: white;
+    text-align: center;
 }
 
 .container {
-    background:#1a1a1a;
-    padding:20px;
-    border-radius:20px;
-    width:90%;
-    max-width:380px;
-    margin:auto;
-    margin-top:20px;
+    background: #121212;
+    padding: 25px;
+    border-radius: 25px;
+    width: 90%;
+    max-width: 380px;
+    margin: auto;
+    margin-top: 30px;
+    box-shadow: 0 0 25px rgba(0,255,150,0.1);
 }
 
-h2 {color:#00ff88;}
+h2 { color:#00ff88; }
 
 input {
     width:95%;
-    padding:10px;
+    padding:12px;
     margin:6px 0;
-    border-radius:10px;
-    border:none;
-    background:#2a2a2a;
+    border-radius:12px;
+    border:1px solid #2a2a2a;
+    background:#1b1b1b;
     color:white;
 }
 
 button {
     margin-top:10px;
-    padding:12px;
+    padding:14px;
     width:100%;
-    background:#00ff88;
+    background:linear-gradient(90deg,#00ff88,#00cc66);
     color:black;
     border:none;
-    border-radius:12px;
+    border-radius:14px;
     font-weight:bold;
 }
 
 .result {
-    margin-top:15px;
-    font-size:17px;
+    margin-top:20px;
+    font-size:16px;
+    background:#0f0f0f;
+    padding:15px;
+    border-radius:15px;
 }
+
 </style>
 </head>
 
@@ -58,14 +64,21 @@ button {
 <div class="container">
 <h2>WR ENVELOPAMENTOS</h2>
 
-<input id="custoMetro" placeholder="Custo por metro (R$)">
-<input id="metros" placeholder="Metros usados">
-<input id="perda" placeholder="Perda (%)">
+<input id="comprimento" placeholder="Comprimento (m)">
+<input id="largura" placeholder="Largura (m)">
+
+<input id="precoM2" placeholder="Preço do m² (R$)">
+<input id="perda" placeholder="Perdas (%)">
+
+<input id="horas" placeholder="Horas do serviço">
+<input id="lucro" placeholder="Margem de lucro (%)">
 
 <input id="fixoMensal" placeholder="Custo fixo mensal (R$)">
-<input id="imposto" placeholder="Impostos (%)">
 
-<button onclick="calcular()">Calcular</button>
+<input id="depreciacao" placeholder="Depreciação (%)">
+
+<button onclick="setDepreciacao()">Aplicar depreciação automática (7%)</button>
+<button onclick="calcular()">Calcular orçamento</button>
 
 <div class="result" id="resultado"></div>
 
@@ -73,36 +86,59 @@ button {
 
 <script>
 
+function setDepreciacao(){
+    depreciacao.value = 7;
+}
+
 function calcular(){
 
-let custoMetro = parseFloat(custoMetro.value) || 0;
-let metrosUsados = parseFloat(metros.value) || 0;
-let perdaPct = parseFloat(perda.value) || 0;
+let comp = parseFloat(comprimento.value) || 0;
+let larg = parseFloat(largura.value) || 0;
+let precoM2 = parseFloat(precoM2.value) || 0;
+let perda = parseFloat(perda.value) || 0;
+let horas = parseFloat(horas.value) || 0;
+let lucro = parseFloat(lucro.value) || 0;
 let fixoMensal = parseFloat(fixoMensal.value) || 0;
-let impostoPct = parseFloat(imposto.value) || 0;
+let dep = parseFloat(depreciacao.value) || 0;
 
-// padrão automático (média de serviços no mês)
-let mediaServicos = 15;
+let valorHora = 50;
+
+// área
+let area = comp * larg;
 
 // material
-let material = custoMetro * metrosUsados;
+let material = area * precoM2;
 
-// perda
-let materialReal = material * (1 + perdaPct / 100);
+// perdas
+let materialReal = material * (1 + perda / 100);
 
-// custo fixo diluído automático
-let fixoPorServico = fixoMensal / mediaServicos;
+// mão de obra
+let maoDeObra = horas * valorHora;
+
+// custo fixo diluído
+let fixoServico = fixoMensal / 15;
+
+// custo base
+let custoBase = materialReal + maoDeObra + fixoServico;
+
+// depreciação
+let valorDep = custoBase * (dep / 100);
 
 // custo total
-let custoTotal = materialReal + fixoPorServico;
+let custoTotal = custoBase + valorDep;
 
-// preço final com imposto
-let precoFinal = custoTotal * (1 + impostoPct / 100);
+// preço final
+let precoFinal = custoTotal * (1 + lucro / 100);
 
 resultado.innerHTML = `
-Custo fixo por serviço (auto): R$ ${fixoPorServico.toFixed(2)} <br><br>
-Custo total: R$ ${custoTotal.toFixed(2)} <br><br>
-Preço mínimo: R$ ${precoFinal.toFixed(2)}
+Área: ${area.toFixed(2)} m² <br><br>
+Material: R$ ${materialReal.toFixed(2)} <br>
+Mão de obra: R$ ${maoDeObra.toFixed(2)} <br>
+Custo fixo: R$ ${fixoServico.toFixed(2)} <br>
+Depreciação: R$ ${valorDep.toFixed(2)} <br><br>
+
+<b>Custo total:</b> R$ ${custoTotal.toFixed(2)} <br>
+<b>Preço final:</b> R$ ${precoFinal.toFixed(2)}
 `;
 
 }
