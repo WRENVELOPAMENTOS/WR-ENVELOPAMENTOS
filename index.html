@@ -23,7 +23,7 @@ body {
     margin-top:20px;
 }
 
-h2 {color:red;}
+h2 {color:#00ff88;}
 
 input {
     width:95%;
@@ -39,8 +39,8 @@ button {
     margin-top:10px;
     padding:12px;
     width:100%;
-    background:red;
-    color:white;
+    background:#00ff88;
+    color:black;
     border:none;
     border-radius:12px;
     font-weight:bold;
@@ -48,13 +48,7 @@ button {
 
 .result {
     margin-top:15px;
-    font-size:16px;
-}
-
-.alerta {
-    margin-top:10px;
-    font-weight:bold;
-    font-size:18px;
+    font-size:17px;
 }
 </style>
 </head>
@@ -68,17 +62,12 @@ button {
 <input id="metros" placeholder="Metros usados">
 <input id="perda" placeholder="Perda (%)">
 
-<input id="fixo" placeholder="Custo fixo por serviço (R$)">
+<input id="fixoMensal" placeholder="Custo fixo mensal (R$)">
 <input id="imposto" placeholder="Impostos (%)">
-
-<input id="lucro" placeholder="Lucro desejado (%)">
-
-<input id="precoCliente" placeholder="Preço que o cliente quer pagar (R$)">
 
 <button onclick="calcular()">Calcular</button>
 
 <div class="result" id="resultado"></div>
-<div class="alerta" id="alerta"></div>
 
 </div>
 
@@ -89,46 +78,32 @@ function calcular(){
 let custoMetro = parseFloat(custoMetro.value) || 0;
 let metrosUsados = parseFloat(metros.value) || 0;
 let perdaPct = parseFloat(perda.value) || 0;
-let custoFixo = parseFloat(fixo.value) || 0;
+let fixoMensal = parseFloat(fixoMensal.value) || 0;
 let impostoPct = parseFloat(imposto.value) || 0;
-let lucroPct = parseFloat(lucro.value) || 0;
-let precoCliente = parseFloat(precoCliente.value) || 0;
 
-// cálculo
+// padrão automático (média de serviços no mês)
+let mediaServicos = 15;
+
+// material
 let material = custoMetro * metrosUsados;
+
+// perda
 let materialReal = material * (1 + perdaPct / 100);
-let custoTotal = materialReal + custoFixo;
 
-let precoMinimo = custoTotal * (1 + impostoPct / 100);
-let precoIdeal = precoMinimo * (1 + lucroPct / 100);
+// custo fixo diluído automático
+let fixoPorServico = fixoMensal / mediaServicos;
 
-let lucroReal = precoCliente - custoTotal;
+// custo total
+let custoTotal = materialReal + fixoPorServico;
 
-// resultado
+// preço final com imposto
+let precoFinal = custoTotal * (1 + impostoPct / 100);
+
 resultado.innerHTML = `
+Custo fixo por serviço (auto): R$ ${fixoPorServico.toFixed(2)} <br><br>
 Custo total: R$ ${custoTotal.toFixed(2)} <br><br>
-Preço mínimo: R$ ${precoMinimo.toFixed(2)} <br>
-Preço ideal: R$ ${precoIdeal.toFixed(2)} <br><br>
-Lucro nesse valor: R$ ${lucroReal.toFixed(2)}
+Preço mínimo: R$ ${precoFinal.toFixed(2)}
 `;
-
-// alerta inteligente
-if(precoCliente > 0){
-
-    if(precoCliente < precoMinimo){
-        alerta.innerHTML = "⚠️ Você está pagando pra trabalhar";
-        alerta.style.color = "orange";
-    }
-    else if(precoCliente < precoIdeal){
-        alerta.innerHTML = "⚠️ Lucro baixo";
-        alerta.style.color = "yellow";
-    }
-    else{
-        alerta.innerHTML = "🔥 Preço saudável";
-        alerta.style.color = "lightgreen";
-    }
-
-}
 
 }
 
